@@ -115,7 +115,7 @@ Structure.prototype.undoUntil = function(structure) {
 function handleHistory (emitter, fn) {
   return function (newData, oldData, path) {
     var newStructure = fn.apply(fn, arguments);
-    if (!emitter.history) return newStructure;
+    if (!emitter.history || (newData === oldData)) return newStructure;
 
     emitter.history = emitter.history
       .take(++emitter._currentRevision)
@@ -147,8 +147,11 @@ var possiblyEmitAnimationFrameEvent = (function () {
 function handleSwap (emitter, fn) {
   return function (newData, oldData, path) {
     var newStructure = fn.apply(fn, arguments);
+    if(newData === oldData) return newStructure;
+
     emitter.emit('swap', newStructure, oldData);
     possiblyEmitAnimationFrameEvent(emitter, newStructure, oldData);
+
     return newStructure;
   };
 }
@@ -157,6 +160,7 @@ function handleSwap (emitter, fn) {
 function handlePersisting (emitter, fn) {
   return function (newData, oldData, path) {
     var newStructure = fn.apply(fn, arguments);
+    if(newData === oldData) return newStructure;
 
     var oldObject = oldData && oldData.getIn(path);
     var newObject = newData && newData.getIn(path);
